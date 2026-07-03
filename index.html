@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ဥပဒေဆိုင်ရာ မေးခွန်းများ Quiz</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #2980b9;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --footer-bg: #1a252f;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pyidaungsu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            padding-bottom: 90px; /* Fixed Footer နှင့် မကွယ်စေရန် နေရာချန်ထားသည် */
+            line-height: 2;
+            font-size: 1.2rem;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 15px;
+        }
+
+        /* Section Specific Score Board */
+        .score-container {
+            background: #eef5f9;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            border: 2px solid #d4e6f1;
+        }
+        #score-display {
+            color: var(--accent-color);
+            background: #fff;
+            padding: 2px 15px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #status-message {
+            font-size: 1.1rem;
+            margin-top: 8px;
+            font-weight: normal;
+            color: #555;
+        }
+
+        /* Quiz List Styling */
+        .quiz-container {
+            min-height: 300px;
+            margin-bottom: 30px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .quiz-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-bottom: 1px dashed #cbd5e1;
+            background: #fdfdfd;
+            border-radius: 8px;
+        }
+        .quiz-text {
+            font-size: 1.25rem;
+        }
+        .blank-input {
+            border: none;
+            border-bottom: 3px solid var(--accent-color);
+            padding: 2px 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #d35400;
+            text-align: center;
+            width: 200px;
+            background: #fcf8f2;
+            border-radius: 4px 4px 0 0;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .blank-input:focus {
+            border-bottom-color: var(--primary-color);
+            background: #fff;
+        }
+        
+        /* Feedback styles */
+        .correct {
+            border-bottom-color: var(--success-color) !important;
+            color: var(--success-color) !important;
+            background-color: #e8f8f5 !important;
+        }
+        .incorrect {
+            border-bottom-color: var(--error-color) !important;
+            color: var(--error-color) !important;
+            background-color: #fdedec !important;
+        }
+        .feedback-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 8px;
+            padding-left: 10px;
+            display: none;
+        }
+
+        /* Action Buttons */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+        .btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-submit {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-submit:hover { background-color: #219653; transform: translateY(-2px); }
+        .btn-reset {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-reset:hover { background-color: #1f618d; transform: translateY(-2px); }
+
+        /* Tabs Styling (Bottom) */
+        .tabs {
+            display: flex;
+            border-top: 2px solid #e2e8f0;
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px 10px;
+            background: #eaeded;
+            border: 1px solid #d5dbdb;
+            border-radius: 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34495e;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        /* Download Link Style */
+        .download-box {
+            text-align: center;
+            padding: 50px 20px;
+            background: #fef9e7;
+            border: 2px dashed #f1c40f;
+            border-radius: 12px;
+        }
+        .download-link {
+            display: inline-block;
+            padding: 15px 35px;
+            background-color: #e67e22;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .download-link:hover { background-color: #d35400; }
+
+        /* Fixed Footer Style with Color */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--footer-bg);
+            color: #ecf0f1;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            body { padding: 10px; padding-bottom: 70px; font-size: 1.1rem; }
+            .container { padding: 15px; }
+            h1 { font-size: 1.6rem; }
+            .score-container { font-size: 1.3rem; }
+            .tabs { flex-direction: column; gap: 8px; border-top: none; }
+            .tab-btn { font-size: 1rem; padding: 12px; margin: 0; }
+            .blank-input { width: 140px; font-size: 1.1rem; }
+            .quiz-text { font-size: 1.1rem; }
+            .btn-container { flex-direction: column; }
+            .btn { padding: 14px; font-size: 1.1rem; }
+            footer { font-size: 1rem; padding: 12px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ဥပဒေဆိုင်ရာ အထွေထွေဗဟုသုတများ Quiz</h1>
+
+    <div class="score-container">
+        <span id="section-title">မေးခွန်း ၁ ရမှတ်ရလဒ်</span>: <span id="score-display">0 / 0</span>
+        <div id="status-message"></div>
+    </div>
+
+    <div class="quiz-container">
+        <div id="tab0" class="tab-content active">
+            <div id="quiz-list-1"></div>
+        </div>
+
+        <div id="tab1" class="tab-content">
+            <div id="quiz-list-2"></div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <div class="download-box">
+                <p style="font-weight: bold; font-size: 1.3rem;">မူရင်းဥပဒေမေးခွန်းလွှာ PDF ဖိုင်ကို အောက်ပါ Link တွင် ဒေါင်းလုဒ်ရယူနိုင်ပါသည်။</p>
+                <a href="Law.pdf" class="download-link" download>⬇ Law.pdf ဖိုင်အားဒေါင်းလုဒ်ရန်</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-container" id="control-buttons">
+        <button class="btn btn-submit" onclick="checkCurrentTabAnswers()">Check Score</button>
+        <button class="btn btn-reset" onclick="initQuiz()">Try Again (Random)</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">မေးခွန်း ၁</button>
+        <button class="tab-btn" onclick="switchTab(1)">မေးခွန်း ၂</button>
+        <button class="tab-btn" onclick="switchTab(2)">Download PDF</button>
+    </div>
+</div>
+
+<footer>
+    Copyright Student Number 142
+</footer>
+
+<script>
+    // Full extracted data from PDF
+    const allQuestions = [
+        { id: "1", answer: "မူပိုင်ခွင့်", text: "ဆိုသည်မှာ ကိုယ်ပိုင်အသိဉာဏ်ဖြင့် ပြုလုပ်သော တီထွင်ဖန်တီးမှုများကို အကာအကွယ် ပေးရန် ဥပဒေအရ ပေးအပ်သည့် အခွင့်အရေးကို ဆိုလိုသည်" },
+        { id: "2", answer: "ဖွဲ့စည်းပုံအခြေခံဥပဒေနှင့်ဥပဒေ", text: "များသည် စာပေနှင့်အနုပညာ မူပိုင်ခွင့်အရအခွင့်အရေးအတွက် အကာအကွယ်မရရှိစေရ" },
+        { id: "3", answer: "စီးပွားရေးဆိုင်ရာ", text: "စာပေအနုပညာမူပိုင်ခွင့်ပိုင်ရှင်၏အခွင့်အရေး (၂) မျိုးမှာ <input class='blank-input' data-ans='စီးပွားရေးဆိုင်ရာ'> နှင့်၊ ကိုယ်ကျင့်သိက္ခာဆိုင်ရာအခွင့်အရေး တို့ဖြစ်သည်" },
+        { id: "4", answer: "ပညာသင်ကြားရန်", text: "ရည်ရွယ်ပါက စာပေအနုပညာ မူပိုင်ခွင့်အရခွင့် ပြုချက် ရယူရန်မလိုဘဲ ပြုလုပ်ခွင့်ရှိသည်" },
+        { id: "5", answer: "၅၀", text: "စာပေအနုပညာမူပိုင်ခွင့်သက်တမ်းသည် မူလလက်ရာရှင် သက်ရှိထင်ရှားရှိစဉ်ကာလအပြင်ကွယ်လွန်ပြီးသည့်နေ့ရက်မှ နှစ် <input class='blank-input' data-ans='၅၀'> အထိ သူ၏ အမွေကိုဆက်ခံသူက ဆက်လက်ခံစားခွင့်ရှိသည်။" },
+        { id: "6", answer: "၁၀", text: "မှတ်ပုံတင်ထားသော ကုန်အမှတ်တံဆိပ် မှတ်ပုံတင်သက်တမ်း သည်တင်သွင်းသည့်နေ့မှ စ၍ နှစ် <input class='blank-input' data-ans='၁၀'> အထိ ဖြစ်သည်" },
+        { id: "7", answer: "၂၀", text: "တီထွင်မှုမူပိုင်ခွင့်သက်တမ်းသည် တင်သွင်းသည့်နေ့မှစ၍ နှစ် <input class='blank-input' data-ans='၂၀'> အထိ ဖြစ်သည်" },
+        { id: "8", answer: "၁၀", text: "တင်သွင်းသည့်နေ့မှစ၍ အသေးစားမူပိုင်ခွင့်သက်တမ်းသည် <input class='blank-input' data-ans='၁၀'> နှစ် အထိ ဖြစ်သည်" },
+        { id: "9", answer: "၅", text: "စက်မှုဒီဇိုင်းမူပိုင်ခွင့်သက်တမ်း တင်သွင်းသည့်နေ့မှစ၍ <input class='blank-input' data-ans='၅'> နှစ် အထိဖြစ်သည်။" },
+        { id: "10", answer: "အကန့်အသတ်မရှိကာလ", text: "ကိုယ်ကျင့်သိက္ခာဆိုင်ရာအခွင့်အရေး ၏ သက်တမ်းသည် <input class='blank-input' data-ans='အကန့်အသတ်မရှိကာလ'> ဖြစ်သည်" },
+        { id: "11", answer: "ရှာဖွေတွေ့ရှိချက်", text: "များသည် အကာအကွယ်မရရှိနိုင်သော တီထွင် မှုများ ဖြစ်သည်။ (သိပ္ပံဆိုင်ရာသီအိုရီများနှင့် သင်္ချာဆိုင်ရာ တွက်ချက်နည်းများ)" },
+        { id: "12", answer: "ခုခံချေပခွင့်", text: "အမှုများတွင် ဥပဒေအရ <input class='blank-input' data-ans='ခုခံချေပခွင့်'> နှင့် အယူခံပိုင်ခွင့်ရှိသည်။" },
+        { id: "13", answer: "အမြင့်ဆုံး", text: "ပြည်ထောင်စု တရားလွှတ်တော်ချုပ်သည်နိုင်ငံတော်၏ <input class='blank-input' data-ans='အမြင့်ဆုံး'> တရား ရုံး ဖြစ်သည်" },
+        { id: "14", answer: "ပင်လယ်ဓားပြမှု", text: "ပြည်ထောင်စုတရားလွှတ်တော်ချုပ်သည် မူလမူစီရင်ပိုင်ခွင့် အာဏာရ <input class='blank-input' data-ans='ပင်လယ်ဓားပြမှု'>၊ နိုင်ငံတကာပင်လယ်ပြင် သို့မဟုတ် ကောင်းကင်ယံ၌ကျူးလွန်သော ပြစ်မှုများကိုလည်းစီရင် ပိုင်ခွင့်ရှိသည်" },
+        { id: "15", answer: "အမှုခေါ်စာချွန်တော်အမိန့်", text: "ဆိုသည်မှာ ဆုံးဖြတ်ဆောင်ရွက်ချက်သည် ဥပဒေနှင့်ညီညွတ်မျှတမှုမရှိကြောင်းစစ်ဆေးတွေ့ရှိပါက ထို ဆုံးဖြတ်ဆောင်ရွက်ချက်ကို ဥပဒေနှင့်ညီညွတ်စေရန် ရေးသား ထုတ် ပြန်သည့် အမိန်စာ ကိုဆိုသည်" },
+        { id: "16", answer: "အရေးပေါ်အခြေအနေများ", text: "နိုင်ငံတော်အတွင်း <input class='blank-input' data-ans='အရေးပေါ်အခြေအနေများ'> ပေါ်ပေါက်ကြောင်း ကြေညာသည့်ဒေသတွင်စာချွန်တော်အမိန့်ထုတ်ဆင့်ပေးရန် လျှေက်ထားချက်များ ကိုရပ်ဆိုင်းထားရမည်" },
+        { id: "17", answer: "ပြည်ထောင်စုတရားသူကြီးချုပ်", text: "ပါဝင်သော ပြည်ထောင်စုတရားလွှတ်တော်ချုပ်၏ စီရင်ချက်များသည် အမှုအားလုံးတွင် အပြီးအပြတ်ဖြစ်၍ အယူခံဝင်ခွင့် မရှိပေ" },
+        { id: "18", answer: "လူသေမှုကို", text: "မည်သူမဆို သေစေခြင်းဖြစ်တန်ရာသော ကိုယ်အင်္ဂါ နာကျင် စေမှုကို ဖြစ်စေရန် အကြံဖြင့် ပြုလုပ်မှု တစ်ခုခုကို ပြု၍ လူကို သေစေခြင်းမှာ လူသတ်မှု မမြောက်သည့် <input class='blank-input' data-ans='လူသေမှုကို'> ထိုက်သော ရာဇဝတ်ပြစ်ဒဏ် ကျူးလွန်ရာ ရောက်ပါသည်။" },
+        { id: "19", answer: "ရွှေ့ပြောင်းနိုင်", text: "မြေ၌စွဲကပ်ထားသောအရာတွင် အမြဲတွယ်ကပ်ထားသော အရာများမှတစ်ပါး အကောင်အထည် ရှိသောကျန်ဝတ္ထုပစ္စည်း အမျိုးမျိုးသည် <input class='blank-input' data-ans='ရွှေ့ပြောင်းနိုင်'> သည့်ပစ္စည်း တွင်ပါဝင်သည်" },
+        { id: "20", answer: "မရောက်ပေ", text: "ဆရာဝန်ဦးမြသည် ဝေဒနာခံစားနေရသော မောင်မဲ၏ သဘောတူညီချက်ဖြင့် ခွဲစိတ်ကုသ သောကြောင့် မောင်မဲ သေဆုံး သော် လည်း ဦးမြသည် ပြစ်မှုကျူးလွန်ရာ <input class='blank-input' data-ans='မရောက်ပေ'> " },
+        { id: "21", answer: "နိုင်ငံတော်သမ္မတ", text: "သေဒဏ်မှ အခြားပြစ်ဒဏ်တစ်ခုခုသို့ ပြောင်းလဲသတ်မှတ် နိုင်သော သူသည် <input class='blank-input' data-ans='နိုင်ငံတော်သမ္မတ'> ဖြစ်သည်" },
+        { id: "22", answer: "သေဒဏ်", text: "ရာဇသတ်ကြီးပါ ပြစ်ဒဏ်ပြဌာန်းချက်များအရ ပြစ်မှုကျူးလွန်သူတို့ ထိုက်သင့်သော အမြင့်ဆုံးပြစ်ဒဏ်မှာ <input class='blank-input' data-ans='သေဒဏ်'> ဖြစ် သည်။" },
+        { id: "23", answer: "မရိုးမဖြောင့်ခြင်း", text: "မတရားရယူစေရန် အကြံနှင့်ဖြစ်စေ၊ မတရားဆုံးရှုံးစေရန် အကြံနှင့်ဖြစ်စေ သူတစ်ဦးအား တစ်စုံတစ်ရာ ပြုလျှင် ထိုသူ သည် <input class='blank-input' data-ans='မရိုးမဖြောင့်ခြင်း'> ပြုသည် မည်၏။" },
+        { id: "24", answer: "စိုးရိမ်ဖွယ်ရာ", text: "မကာကွယ်ပါကသေဘေးသို့ ရောက်စေခြင်းအတွက် <input class='blank-input' data-ans='စိုးရိမ်ဖွယ်ရာ'> ဖြစ်လောက်အောင်အကြောင်းရှိသည့်လက်ရောက် မှု ဖြစ်ပါက သေသည်အထိကာကွယ်ခုခံပိုင်ခွင့်ရှိသည်။" },
+        { id: "25", answer: "ဥပဒေနှင့် ညီသော", text: "စစ်သားတစ်ဦးသည် ရုန်းရင်းဆန်ခတ်ဖြစ်သော လူစုလူဝေးကို အထက်အရာရှိ၏အမိန့်ဖြင့် သေနတ်နှင့် ပစ်ခတ်ခြင်းသည် <input class='blank-input' data-ans='ဥပဒေနှင့် ညီသော'> ပြစ်မှုကျုးလွန်ရာ မရောက်ပါ" },
+        { id: "26", answer: "အုပ်ချုပ်ရေးအာဏာ", text: "ပြည်ထောင်စုမြန်မာတစ်ဝန်းလုံးတွင် မည်သည့်အရပ်၌မဆို <input class='blank-input' data-ans='အုပ်ချုပ်ရေးအာဏာ'> ကို စီမံခန့်ခွဲရန် ဥပဒေအရ အခွင့်အာဏာ ပေးထား သည့် လူတစ်ဦး သို့မဟုတ် အများသည် အစိုးရ ဖြစ်သည်" },
+        { id: "27", answer: "ခိုးမှု", text: "လုယက်မှုတွင် <input class='blank-input' data-ans='ခိုးမှု'> သော်လည်းကောင်း ခြောက်လှန့် တောင်းယူမှုသည်လည်းကောင်း ပါဝင်သည်" },
+        { id: "28", answer: "၁၂", text: "အမြော်အမြင် အဆင်အခြင်နှင့် မပြည့်စုံသေးသည့် အသက် (၇) နှစ်နှင့် အထက် <input class='blank-input' data-ans='၁၂'> နှစ်အောက်ကလေးတစ်ဦး၏ ပြုလုပ်မှုသည် ပြစ်မှု မမြောက်ဟူ၍ ရာဇသတ်ကြီးတွင် ပြဌာန်းထားပါသည်" },
+        { id: "29", answer: "စာတမ်းအမှတ်အသား", text: "သက်သေခံအဖြစ် အသုံးပြုရန် ကြံရွယ်သော သို့မဟုတ် အသုံးပြုနိုင်သောအက္ခရာ၊ ကိန်းဂဏန်း، အမှတ်အသား တို့သည် <input class='blank-input' data-ans='စာတမ်းအမှတ်အသား'> ဖြစ်သည်" },
+        { id: "30", answer: "ပြည်ထောင်စုအစိုးရအဖွဲ့", text: "သည် ဝန်ထမ်းအဖွဲ့အစည်းများကို လိုအပ်သလို ဖွဲ့စည်းနိုင်သည်။" },
+        { id: "31", answer: "အမြဲတမ်းလစ်လပ်သည့်ရာထူး", text: "ဝန်ထမ်းတစ်ဦးကို ဖွဲ့စည်းပုံပါ ရာထူးတစ်ခု၌ အတည်ပြုခန့် ထားရာတွင် ရာထူးသည် <input class='blank-input' data-ans='အမြဲတမ်းလစ်လပ်သည့်ရာထူး'> ဖြစ်ရမည်" },
+        { id: "32", answer: "ပျမ်းမျှလစာ၏ (၃/၈) နှုန်း", text: "တာဝန်မှယာယီရပ်ဆိုင်းခြင်းခံရသည့် ဝန်ထမ်း၏ ခံစားခွင့် ရှိသည့် စားစရိတ် ထောက်ပံ့ကြေးသည် တစ်နှစ်ပြည့်ပြီး နောက်ပိုင်းကာလအတွက် <input class='blank-input' data-ans='ပျမ်းမျှလစာ၏ (၃/၈) နှုန်း'> ဖြစ်သည်" },
+        { id: "33", answer: "နိုင်ငံတော်သမ္မတ", text: "ရာထူးမှ ထုတ်ပယ်ခြင်း၊ ဝန်ထမ်းအဖြစ်မှ ထုတ်ပစ်ခြင်းခံရ သူများ၏ စာရင်းများကို ရာထူးဝန်အဖွဲ့၊ ဝန်ထမ်းရေးရာ ဦးစီးဌာနက နှစ်အလိုက်ပြုစုထိန်းရှိမ်း၍ <input class='blank-input' data-ans='နိုင်ငံတော်သမ္မတ'> ထံသို့ အစီရင်ခံ တင်ပြရမည်" },
+        { id: "34", answer: "ချီးမြှင့်ငွေ", text: "ဆိုသည်မှာ မူလရာထူးတာဝန်မှ အပဖြစ်သော လုပ်ငန်းတာဝန်တစ်ရပ်ရပ်ကို ထမ်းဆောင် ရသည့်အတွက် ဝန်ထမ်းကို နိုင်ငံတော်ဘဏ္ဍာရန်ပုံငွေမှ ချီးမြှင့်သောငွေ ဖြစ်သည်" },
+        { id: "35", answer: "ရာထူးမှထုတ်ပယ်ခြင်း", text: "ခံရသူအား နောင်တွင် ဝန်ထမ်းအဖြစ် ဝန်ကြီး ဌာနနှင့်အဖွဲ့အစည်းအကြီးအမှူး၏ အဘောတူညီချက်ဖြင့် ပြန်လည် ခန့်ထားရာတွင် တစ်ကြိမ်ထက်ပို၍ ခန့်ထားခြင်း မပြုရ" },
+        { id: "36", answer: "အဆင့်နိမ့်ရာထူး", text: "ဝန်ထမ်းကို ပြစ်ဒဏ်တစ်ရပ်အဖြစ် <input class='blank-input' data-ans='အဆင့်နိမ့်ရာထူး'> သို့ ကာလ သတ်မှတ်ချက်ဖြင့် ပြောင်းရွှေ့ တာဝန်ထမ်းဆောင်ရသည့် ကိစ္စတွင် ယင်းဝန်ထမ်း၏ ရာထူးအနွယ်သည် မူလရာထူး၌ သာရှိပြီး အဆင့်နိမ့်ရာထူး၏ ရာထူးအနွယ် ပိုင်ဆိုင်ခွင့်ကို မရရှိ စေရ။" },
+        { id: "37", answer: "လုပ်သက်ခွင့်", text: "ကို ဆေးလက်မှတ်ခွင့်နှင့် လစာမဲ့ခွင့်တို့၏ ရှေ့မှ ဖြစ်စေ၊ နောက်မှ ဖြစ်စေ၊ တစ်ဆက်တည်း ဆက်စပ် ခံစားခွင့် ရှိသည်" },
+        { id: "38", answer: "ချမှတ်သည့်ပြစ်ဒဏ်", text: "ဝန်ထမ်းစည်းကမ်းဆိုင်ရာပြစ်ဒဏ်ကို ချမှတ်ရာ၌ ကျူးလွန် သည့်ပြစ်မှုနှင့် <input class='blank-input' data-ans='ချမှတ်သည့်ပြစ်ဒဏ်'> တို့သည် လိုက်လျောညီထွေမှု၊ တရား မျှတမှု ရှိစေရမည်" },
+        { id: "39", answer: "ဝန်ထမ်းအဖြစ်", text: "မှ ထုတ်ပစ်ခြင်းခံရသူကို ဝန်ထမ်းအဖွဲ့အစည်း တစ်ရပ်ရပ်တွင် ပြန်လည် ခန့်ထားခြင်း မပြုရ။" },
+        { id: "40", answer: "အငြိမ်းစားယူရန်ကြိုတင်ပြင်ဆင်ခွင့်", text: "ဝန်ထမ်းကို အငြိမ်းစားယူရမည့် အသက်ပြည့်သည့်နေ့မတိုင်မီ <input class='blank-input' data-ans='အငြိမ်းစားယူရန်ကြိုတင်ပြင်ဆင်ခွင့်'> ကို ပျမ်းမျှလစာ ဖြင့်ခံစားနိုင် သည်။" },
+        { id: "41", answer: "အလေးထား", text: "ဝန်ထမ်းသည် နိုင်ငံတော်နှင့် နိုင်ငံသားတို့၏အကျိုးစီးပွားကို <input class='blank-input' data-ans='အလေးထား'> ၍ ဆောင်ရွက် ရမည်။" },
+        { id: "42", answer: "တစ်ဆင့်နိမ့်သည့် ရာထူး", text: "ရာထူးအဆင့်လျှော့ချခြင်းဆိုသည်မှာ ဝန်ထမ်းကို လက်ရှိရာထူး အောက် <input class='blank-input' data-ans='တစ်ဆင့်နိမ့်သည့် ရာထူး'> သို့ ကာလအကန့်အသတ် ဖြင့်လျှော့ချ ခြင်းကိုဆိုသည်" },
+        { id: "43", answer: "ပြည်သူ့စစ်မှုထမ်း", text: "တာဝန်ချိန်ကာလ ဟူသော စကားရပ်တွင် <input class='blank-input' data-ans='ပြည်သူ့စစ်မှုထမ်း'> တာဝန် ထမ်းဆောင်နေသည့် ကာလလည်း ပါဝင်သည်။" },
+        { id: "44", answer: "ပြည်ထောင်စုအစိုးရအဖွဲ့", text: "ပြင်ပဝန်ထမ်းတာဝန်ထမ်းဆောင်ခြင်း ဆိုသည်မှာ ပြည်တွင်း၌ဖြစ်စေ၊ ပြည်ပ၌ဖြစ်စေ ပြင်ပအဖွဲ့အစည်းတစ်ခုခု၌ <input class='blank-input' data-ans='ပြည်ထောင်စုအစိုးရအဖွဲ့'> ၏ ခွင့်ပြုချက်ဖြင့် အချိန်ပြည့် လွှဲပြောင်းတာဝန် ထမ်းဆောင်နေပြီး လစာကို နိုင်ငံတော် ဘဏ္ဍာရန်ပုံငွေမှ အပ ဖြစ်သောအခြား ဘဏ္ဍာရန်ပုံငွေ တစ်ရပ်ရပ်မှ ရယူခံစား ခြင်းကိုဆိုသည်" },
+        { id: "45", answer: "၁၉၃၃", text: "ခုနှစ်တွင် နိုင်ငံများ၏ အခွင့်အရေးနှင့် တာဝန်များကို Montevideo Convention အရ ချုပ်ဆိုခဲ့သည်။" },
+        { id: "46", answer: "၃", text: "နိုင်ငံပိုင်နယ်နိမိတ်အစိတ်အပိုင်း <input class='blank-input' data-ans='၃'> ပိုင်း ခွဲခြား သတ် မှတ်ထားသည်။" },
+        { id: "47", answer: "အပြည်ပြည်ဆိုင်ရာ", text: "ကမ္ဘာ့နိုင်ငံများ၏ ပဋိပက္ခအငြင်းပွားမှုများကို <input class='blank-input' data-ans='အပြည်ပြည်ဆိုင်ရာ'> ဥပဒေ အရ ဖြေရှင်းဆောင်ရွက်သည်။" },
+        { id: "48", answer: "၁၉၃", text: "ကုလသမဂ္ဂပဋိညာဉ်တွင် ပါရှိသော စာချုပ်ပါစည်းကမ်း သတ် မှတ်ချက်များကို အဖွဲ့ဝင် <input class='blank-input' data-ans='၁၉၃'> နိုင်ငံမှ လိုက်နာဆောင် ရွက်ရသည်" },
+        { id: "49", answer: "ပထမ", text: "၁၉၅၈ ဂျနီဗာမြို့တွင် <input class='blank-input' data-ans='ပထမ'> အကြိမ် ပင်လယ်ရေကြောင်း ဆိုင်ရာ ညီလာခံကျင်းပခဲ့သည်။" },
+        { id: "50", answer: "တာဝန်", text: "အပြည်ပြည်ဆိုင်ရာဥပဒေတွင် နိုင်ငံတိုင်းအတွက်အခွင့် အရေး နှင့် <input class='blank-input' data-ans='တာဝန်'> သတ်မှတ်ချက်များရှိသည်။" },
+        { id: "51", answer: "၂မျိုး", text: "အပြည်ပြည်ဆိုင်ရာဥပဒေအမျိုးအစား <input class='blank-input' data-ans='၂မျိုး'> ရှိသည်။" },
+        { id: "52", answer: "၁၇၈၀", text: "ခုနှစ်တွင် Jeremy Bentham က ပထမဦးစွာ အပြည် ပြည်ဆိုင်ရာဥပဒေကိုရေးသားခဲ့ပါသည်။" },
+        { id: "53", answer: "အပိုဒ်၃၈(၁)", text: "အပြည်ပြည်ဆိုင်ရာဥပဒေအရင်းအမြစ်များကို ကမ္ဘာ့ကုလ သမဂ္ဂ၏ ပဋိညာဉ် <input class='blank-input' data-ans='အပိုဒ်၃၈(၁)'> တွင်နိုင်ငံအများ သိရှိလိုက်နာ ရန်ပြဌာန်းထားသည်" },
+        { id: "54", answer: "အထူးဥပဒေ", text: "ဆိုသည်မှာ သီးခြားအကြောင်းအရာတစ်ခုနှင့် သက် ဆိုင်သော ဥပဒေကို ဆိုလိုသည်" },
+        { id: "55", answer: "နိုင်ငံတော်ပိုင်နေရာ", text: "ဆိုသည့်စကားရပ်တွင်နိုင်ငံတော်က အမှန်တကယ် အပ်နှံသည်ဖြစ်စေ၊ မအပ်နှံသည်ဖြစ်စေ အစိုးရဌာန တစ်ခုခု က ရယူထားသော နေရာလည်းပါသည်" },
+        { id: "56", answer: "၅", text: "နိုင်ငံတော်တွင်အရေးပေါ်အခြေအနေဖြစ်လျှင် အစိုးရအဖွဲ့ သည် ပြည်သူ့စစ်မှုထမ်းရန်ကာလကို <input class='blank-input' data-ans='၅'> နှစ်အထိ တိုးမြှင့်သတ်မှတ်နိုင်သည်" },
+        { id: "57", answer: "၂၇", text: "စစ်မှုထမ်းရမည့် အသက်အရွယ်ရောက်သူ အမျိုးသမီးဖြစ် လျှင် အသက် ၁၈ နှစ်ပြည့်ပြီး ၍ အသက် <input class='blank-input' data-ans='၂၇'> နှစ် မပြည့် သေးသော နိုင်ငံသားတိုင်းကို ဆိုလိုသည်" },
+        { id: "59", answer: "၁၈", text: "ကလေးသူငယ်ဆိုသည်မှာအသက် <input class='blank-input' data-ans='၁၈'> နှစ် မပြည့်သေး သောသူကိုဆိုသည်" },
+        { id: "60", answer: "ပြည်သူပိုင်ပစ္စည်း", text: "ဆိုသည်မှာ တာဝန်ထမ်းဆောင်နေသော ကြည်း၊ ရေ၊ လေ တပ်မတော် သို့မဟုတ် အစိုးရမှ ပိုင်ဆိုင်သော ပစ္စည်းကိရိယာတန်ဆာပလာများလည်း ပါဝင်သည်။" },
+        { id: "61", answer: "ပြန်တမ်းဝင်", text: "ပါရဂူဘွဲ့ရသူများ၊ အသက်မွေးဝမ်းကျောင်းဆိုင်ရာ ဘွဲ့ရသူ များနှင့် အခါအားလျော်စွာ သတ်မှတ်သည့် အရည် အချင်း ပြည့်စုံသူများကို အရေးပေါ် <input class='blank-input' data-ans='ပြန်တမ်းဝင်'> အဖြစ်ခန့်အပ်နိုင် သည်" },
+        { id: "62", answer: "ပြည်သူ့အကျိုးပြုလုပ်ငန်း", text: "ဆေးဝါးသုံးစွဲသူသည် တစ်ရက်လျှင် တစ်နာရီဖြင့် အနည်းဆုံး ၄၅ နာရီမှ အများဆုံး နာရီ ၉၀ အထိ <input class='blank-input' data-ans='ပြည်သူ့အကျိုးပြုလုပ်ငန်း'> တွင် ကိုယ်တိုင် လုပ်အားဖြင့် အခမဲ့လုပ်ကိုင်ရမည်" },
+        { id: "63", answer: "ဝန်ထမ်းအကြီးအကဲ", text: "အဂတိလိုက်စားမှုတိုက်ဖျက်ရေးကော်မရှင်မှ စုံစမ်းစစ်ဆေး ချက်အရ စွပ်စွဲခံရသူအပေါ် ဝန်ထမ်းစည်းကမ်းအရ အရေး ယူသင့်သည်ဟုယူဆပါကယင်း၏ <input class='blank-input' data-ans='ဝန်ထမ်းအကြီးအကဲ'> ထံသို့ အကြောင်းကြားရမည်" }
+    ];
+
+    // Global variables to track the questions in current session
+    let currentFirstHalf = [];
+    let currentSecondHalf = [];
+    let currentActiveTab = 0;
+
+    // Convert Numbers to Burmese text helper
+    function toBurmeseNum(num) {
+        const burmeseDigits = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
+        return num.toString().split('').map(digit => burmeseDigits[digit] || digit).join('');
+    }
+
+    // Shuffle Array Function
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Initialize Quiz
+    function initQuiz() {
+        const shuffledList = shuffle([...allQuestions]);
+        const half = Math.ceil(shuffledList.length / 2);
+        
+        currentFirstHalf = shuffledList.slice(0, half);
+        currentSecondHalf = shuffledList.slice(half);
+
+        renderTabQuestions();
+        updateScoreBoard();
+    }
+
+    // Render questions to ensure sequence 1, 2, 3... starts correctly on refresh
+    function renderTabQuestions() {
+        // Render part 1 (Always 1 to N sequence)
+        const list1 = document.getElementById('quiz-list-1');
+        list1.innerHTML = '';
+        currentFirstHalf.forEach((q, index) => {
+            const displayNo = index + 1; // Always ordered 1, 2, 3...
+            let formattedText = q.text;
+            if(!formattedText.includes('blank-input')){
+                formattedText = `<input class='blank-input' data-ans='${q.answer}'> ` + formattedText;
+            }
+            const div = document.createElement('div');
+            div.className = 'quiz-item';
+            div.innerHTML = `<p class="quiz-text"><b>${displayNo}။</b> ${formattedText}</p><div class="feedback-text"></div>`;
+            list1.appendChild(div);
+        });
+
+        // Render part 2 (Always 1 to M sequence starting from 1)
+        const list2 = document.getElementById('quiz-list-2');
+        list2.innerHTML = '';
+        currentSecondHalf.forEach((q, index) => {
+            const displayNo = index + 1; // Reset and ordered 1, 2, 3... for Part 2
+            let formattedText = q.text;
+            if(!formattedText.includes('blank-input')){
+                formattedText = `<input class='blank-input' data-ans='${q.answer}'> ` + formattedText;
+            }
+            const div = document.createElement('div');
+            div.className = 'quiz-item';
+            div.innerHTML = `<p class="quiz-text"><b>${displayNo}။</b> ${formattedText}</p><div class="feedback-text"></div>`;
+            list2.appendChild(div);
+        });
+    }
+
+    // Switch Tab Control
+    function switchTab(index) {
+        currentActiveTab = index;
+        const tabs = document.querySelectorAll('.tab-content');
+        const buttons = document.querySelectorAll('.tab-btn');
+        const controls = document.getElementById('control-buttons');
+        const sectionTitle = document.getElementById('section-title');
+        
+        tabs.forEach((tab, i) => {
+            if(i === index) {
+                tab.classList.add('active');
+                buttons[i].classList.add('active');
+            } else {
+                tab.classList.remove('active');
+                buttons[i].classList.remove('active');
+            }
+        });
+
+        if(index === 2) {
+            controls.style.display = 'none';
+            sectionTitle.innerText = "Download PDF အပိုင်း";
+            document.getElementById('score-display').innerText = "-";
+            document.getElementById('status-message').innerText = "";
+        } else {
+            controls.style.display = 'flex';
+            sectionTitle.innerText = index === 0 ? "မေးခွန်း ၁ ရမှတ်ရလဒ်" : "မေးခွန်း ၂ ရမှတ်ရလဒ်";
+            updateScoreBoard();
+        }
+        
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // Update Score Board UI conditionally for current tab
+    function updateScoreBoard() {
+        if (currentActiveTab === 2) return;
+
+        const currentTabContainer = document.getElementById(currentActiveTab === 0 ? 'quiz-list-1' : 'quiz-list-2');
+        const inputs = currentTabContainer.querySelectorAll('.blank-input');
+        
+        let checkedScore = 0;
+        let totalQuestions = inputs.length;
+        let hasChecked = false;
+
+        inputs.forEach(input => {
+            if(input.classList.contains('correct')) {
+                checkedScore++;
+                hasChecked = true;
+            } else if(input.classList.contains('incorrect')) {
+                hasChecked = true;
+            }
+        });
+
+        const scoreDisplay = document.getElementById('score-display');
+        const statusMsg = document.getElementById('status-message');
+
+        if (!hasChecked) {
+            scoreDisplay.innerText = `၀ / ${toBurmeseNum(totalQuestions)}`;
+            scoreDisplay.style.color = 'var(--accent-color)';
+            statusMsg.innerText = "မေးခွန်းများကို ဖြေဆိုပြီးနောက် Check Score ကို နှိပ်ပါ။";
+            statusMsg.style.color = "#555";
+        } else {
+            scoreDisplay.innerText = `${toBurmeseNum(checkedScore)} / ${toBurmeseNum(totalQuestions)}`;
+            if (checkedScore === totalQuestions) {
+                scoreDisplay.style.color = 'var(--success-color)';
+                statusMsg.innerText = "🎉 ထူးချွန်ပါတယ်! ဤအပိုင်းရှိ မေးခွန်းအားလုံး အဖြေမှန်ကန်ပါတယ်။";
+                statusMsg.style.color = 'var(--success-color)';
+            } else {
+                scoreDisplay.style.color = 'var(--error-color)';
+                statusMsg.innerText = `⚠️ သင် ${toBurmeseNum(checkedScore)} မှတ် ရရှိပါသည်။ အနီရောင်အကွက်များကို ပြန်လည်စစ်ဆေးပါ။`;
+                statusMsg.style.color = 'var(--error-color)';
+            }
+        }
+    }
+
+    // Check Answers for Current Active Tab Only
+    function checkCurrentTabAnswers() {
+        const currentTabContainer = document.getElementById(currentActiveTab === 0 ? 'quiz-list-1' : 'quiz-list-2');
+        const inputs = currentTabContainer.querySelectorAll('.blank-input');
+
+        inputs.forEach(input => {
+            const correctAnswer = input.getAttribute('data-ans').trim();
+            const userAnswer = input.value.trim();
+
+            const parentItem = input.closest('.quiz-item');
+            const fb = parentItem ? parentItem.querySelector('.feedback-text') : null;
+
+            if (userAnswer === correctAnswer) {
+                input.className = "blank-input correct";
+                if(fb) fb.style.display = 'none';
+            } else {
+                input.className = "blank-input incorrect";
+                if(fb) {
+                    fb.style.display = 'block';
+                    fb.style.color = 'var(--error-color)';
+                    fb.innerHTML = `❌ အဖြေမှန်: <b>${correctAnswer}</b>`;
+                }
+            }
+        });
+
+        updateScoreBoard();
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
